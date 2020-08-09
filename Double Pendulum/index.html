@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Hi</title>
+</head>
+<body>
+<div>
+	<div class="center" id="pendulum_swing"></div>
+	<div>
+		<button onclick="start()">Start</button>
+		<button onclick="stop()">Stop</button>
+	</div>
+	<div>
+	</div>
+</div>
+</body>
+<script src="pendulum.js"></script>
+<script type="text/javascript">
+
+
+
+var masse_1 = document.getElementById("masse_1");
+masse_1.oninput = function() {
+	stop();
+    console.log(m1);
+    var value = this.value;
+    m1=value;
+    start();
+} 
+
+var masse_2= document.getElementById("masse_2");
+masse_2.oninput = function() {
+    console.log(this.value);
+    m2=this.value;
+} 
+
+
+</script>
+<style type="text/css">
+
+.center {
+  	position: absolute;
+  	left: 50%;
+    transform: translate(-50%, 0%);
+}
+
+</style>
+
+
+</html>
