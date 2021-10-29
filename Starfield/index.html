@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Starfield</title>
+</head>
+<body>
+  <canvas id=canvas></canvas>
+
+</body>
+<style type="text/css">
+html, body{
+  background-color: black;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+</style>
+<script type="text/javascript" src="assets/js/stars.js"></script>
+<script type="text/javascript" src="assets/js/random.js"></script>
+<script type=text/javascript>
+
+let num_stars_total = 1000; //number of stars to generate on startup
+let num_stars_milkyway = 500;
+let prob_shootingstar = 0.12; //probability to generate a shooting star per second (5% -> ~1star/20s)
+var stars = []; //Array to hold all stars
+var canvas, ctx;
+
+function resize_canvas() {
+  // Resizes canvas
+  var w = window.innerWidth
+  || document.documentElement.clientWidth
+  || document.body.clientWidth;
+  var h = window.innerHeight
+  || document.documentElement.clientHeight
+  || document.body.clientHeight;
+
+  var canvas = document.getElementById('canvas');
+  canvas.width  = w;
+  canvas.height = h;
+}
+
+
+function setup() {
+  // Resize canvas and add to event listener 
+  resize_canvas();
+  window.addEventListener('resize',resize_canvas);
+
+  canvas = document.getElementById('canvas');
+  ctx = canvas.getContext("2d");
+
+
+  //generate coords for new star using a predictor and response variable 
+  let alpha = 0;
+  let beta = -2/3;
+  var x = [];
+  var y = [];
+  for (var i = 0; i < num_stars_milkyway; i++) {
+    x.push(rng_normal(0,canvas.width/3));
+    y.push(rng_normal(alpha+beta*x[i],canvas.height/12))
+  }
+
+  //create stars
+  for (var i = 0; i < num_stars_milkyway; i++) {
+    stars.push(new Star(canvas,x[i]+canvas.width/2,y[i]+canvas.height/2));
+    stars[i].init_velocity(0,0);
+    stars[i].draw(ctx);
+  }
+  for (var i = 0; i < num_stars_total-num_stars_milkyway; i++) {
+    stars.push(new Star(canvas));
+    stars[i].draw(ctx);
+  }
+
+
+  //Start loop function
+  window.requestAnimationFrame(loop);
+}
+
+
+var lastTime;
+//Loop to draw/update the stars and do a timestep
+function loop(now){
+  requestAnimationFrame(loop);
+
+
+  if(!lastTime){lastTime=now;}
+  var elapsed=now-lastTime;
+
+  update_all(elapsed/1000); //to seconds
+
+  draw_all();
+
+  lastTime=now;
+  }
+
+//Update function 
+function update_all(dt){
+  var to_delete = [];
+  for (var i = 0; i < stars.length; i++) {
+    if (stars[i].to_delete){to_delete.push(i)};
+    stars[i].timestep(dt);
+  }
+
+  //delete stars which left the canvas
+  var indexSet = new Set(to_delete);
+  stars = stars.filter((value, i) => !indexSet.has(i));
+
+  //Generate new stars for the removed ones
+  for (var i = 0; i < to_delete.length; i++) {
+    stars.push(new Star(canvas));
+  }
+
+  //Randomly generate a shooting star
+  if (Math.random() < prob_shootingstar/60){
+    stars.push(new ShootingStar(canvas));
+  }
+}
+
+function draw_all(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  //Draw stars
+  for (star of stars) {
+    star.draw(ctx);
+  }
+}
+
+
+//Start after all html is loaded
+window.addEventListener('load',setup);
+
+
+</script>
+</html>
